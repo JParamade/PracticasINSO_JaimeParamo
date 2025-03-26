@@ -1,58 +1,89 @@
+#include "FiniteStateMachine.h"
 #include <iostream>
-#include <Windows.h>
 
-#define GetKey(X) (!!(GetAsyncKeyState(0[#X])&0x8000))
+void Ducking::Enter(Player* _pPlayer) { 
+    printf("You are now \033[1;32mDucking\033[0m!\n\n"); 
+}
 
-class Player;
+void Ducking::HandleInput(Player* _pPlayer, PlayerInput _eInput) {
+    if (_eInput == PlayerInput::PressA) _pPlayer->SetState(Standing::GetInstance());
+}
 
-class State {
-public:
-    virtual void Enter(Player* _pPlayer) = 0;
-    virtual void Toggle(Player* _pPlayer) = 0;
-    virtual void Exit(Player* _pPlayer) = 0;
-};
+void Ducking::Exit(Player* _pPlayer) { 
+    printf("You stopped \033[1;31mDucking\033[0m!\n"); 
+}
 
-class Ducking : public State {
-public:
-    virtual void Enter(Player* _pPlayer) { printf(""); }
-    virtual void Toggle(Player* _pPlayer) { printf(""); }
-    virtual void Exit(Player* _pPlayer) { printf(""); }
-};
+State& Ducking::GetInstance() {
+    static Ducking oInstance;
+    return oInstance;
+}
 
-class Standing : public State {
-public:
-    virtual void Enter(Player* _pPlayer) { printf(""); }
-    virtual void Toggle(Player* _pPlayer) { printf(""); }
-    virtual void Exit(Player* _pPlayer) { printf(""); }
-};
+void Standing::Enter(Player* _pPlayer) {
+    printf("You are now \033[1;32mStanding\033[0m!\n\n");
+}
 
-class Jumping : public State {
-public:
-    virtual void Enter(Player* _pPlayer) { printf(""); }
-    virtual void Toggle(Player* _pPlayer) { printf(""); }
-    virtual void Exit(Player* _pPlayer) { printf(""); }
-};
+void Standing::HandleInput(Player* _pPlayer, PlayerInput _eInput) {
+    if (_eInput == PlayerInput::PressA) _pPlayer->SetState(Ducking::GetInstance());
+    else _pPlayer->SetState(Jumping::GetInstance());
+}
 
-class Diving : public State {
-public:
-    virtual void Enter(Player* _pPlayer) { printf(""); }
-    virtual void Toggle(Player* _pPlayer) { printf(""); }
-    virtual void Exit(Player* _pPlayer) { printf(""); }
-};
+void Standing::Exit(Player* _pPlayer) {
+    printf("You stopped \033[1;31mStanding\033[0m!\n");
+}
 
-class Player {
-public:
-    void SetState(State& _rNewState) {
-        pCurrentState->Exit(this);
-        pCurrentState = &_rNewState;
-        pCurrentState->Enter(this);
-    }
+State& Standing::GetInstance() {
+    static Standing oInstance;
+    return oInstance;
+}
 
-private:
-    State* pCurrentState;
-};
+void Jumping::Enter(Player* _pPlayer) {
+    printf("You are now \033[1;32mJumping\033[0m!\n\n");
+}
 
-int main()
-{
+void Jumping::HandleInput(Player* _pPlayer, PlayerInput _eInput) {
+    if (_eInput == PlayerInput::PressA) _pPlayer->SetState(Diving::GetInstance());
+}
 
+void Jumping::Exit(Player* _pPlayer) {
+    printf("You stopped \033[1;31mJumping\033[0m!\n");
+}
+
+State& Jumping::GetInstance() {
+    static Jumping oInstance;
+    return oInstance;
+}
+
+void Diving::Enter(Player* _pPlayer) {
+    printf("You are now \033[1;32mDiving\033[0m!\n\n");
+}
+
+void Diving::HandleInput(Player* _pPlayer, PlayerInput _eInput) {
+    
+}
+
+void Diving::Exit(Player* _pPlayer) {
+    printf("You stopped \033[1;31mDiving\033[0m!\n");
+}
+
+State& Diving::GetInstance() {
+    static Diving oInstance;
+    return oInstance;
+}
+
+Player::Player() { 
+    pCurrentState = &Standing::GetInstance(); 
+}
+
+State* Player::GetCurrentState() const { 
+    return pCurrentState; 
+}
+
+void Player::HandleInput(PlayerInput _eInput) { 
+    pCurrentState->HandleInput(this, _eInput); 
+}
+
+void Player::SetState(State& _rNewState) {
+    pCurrentState->Exit(this);
+    pCurrentState = &_rNewState;
+    pCurrentState->Enter(this);
 }
